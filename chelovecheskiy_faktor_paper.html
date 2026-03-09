@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Человеческий Фактор — KARI Factory</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Inter', -apple-system, sans-serif; background: #f7f6f3; color: #1a1a1a; line-height: 1.75; font-size: 16px; }
+
+  #copy-btn {
+    position: fixed; top: 24px; right: 24px; z-index: 999;
+    background: #c0392b; color: #fff; border: none; border-radius: 8px;
+    padding: 10px 18px; font-family: 'Inter', sans-serif; font-size: 13px;
+    font-weight: 600; letter-spacing: 0.5px; cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    box-shadow: 0 2px 12px rgba(192,57,43,0.35); transition: all 0.2s ease;
+  }
+  #copy-btn:hover { background: #a93226; transform: translateY(-1px); }
+  #copy-btn.copied { background: #1a7a72; }
+  #copy-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+  .copy-hint {
+    position: fixed; top: 72px; right: 24px;
+    background: #1a1a1a; color: #f0f0f0; font-size: 12px;
+    padding: 8px 14px; border-radius: 6px; max-width: 220px;
+    text-align: center; line-height: 1.5; z-index: 998;
+    pointer-events: none; opacity: 0; transition: opacity 0.3s ease;
+  }
+  .copy-hint.visible { opacity: 1; }
+  .copy-hint::before {
+    content: ''; position: absolute; top: -6px; right: 20px;
+    border-left: 6px solid transparent; border-right: 6px solid transparent;
+    border-bottom: 6px solid #1a1a1a;
+  }
+
+  .page { max-width: 760px; margin: 0 auto; padding: 80px 48px 120px; }
+  .doc-title { font-size: 52px; font-weight: 700; color: #111; line-height: 1.1; margin-bottom: 20px; letter-spacing: -1px; }
+  .doc-subtitle { font-size: 18px; color: #555; font-style: italic; line-height: 1.6; margin-bottom: 32px; }
+  .doc-meta { display: flex; gap: 32px; font-size: 14px; color: #777; margin-bottom: 48px; }
+  .doc-meta span strong { color: #333; }
+  .red-rule { border: none; border-top: 3px solid #c0392b; margin: 48px 0; }
+  .rule { border: none; border-top: 1px solid #ddd; margin: 48px 0; }
+  .kicker { font-size: 11px; font-weight: 700; letter-spacing: 3px; text-transform: uppercase; color: #c0392b; margin-bottom: 10px; }
+  h1 { font-size: 32px; font-weight: 700; color: #111; line-height: 1.2; margin-bottom: 20px; letter-spacing: -0.5px; }
+  p { color: #333; margin-bottom: 16px; font-size: 16px; }
+  ul { margin: 16px 0; padding-left: 0; list-style: none; }
+  ul li { padding: 6px 0 6px 22px; position: relative; color: #333; font-size: 15px; }
+  ul li::before { content: '—'; position: absolute; left: 0; color: #c0392b; font-weight: 700; }
+  .compare-block { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin: 20px 0; }
+  .compare-item { background: #f0efec; border-radius: 8px; padding: 16px 18px; }
+  .compare-item .compare-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #999; margin-bottom: 8px; }
+  .compare-item p { font-size: 15px; font-style: italic; color: #444; margin: 0; }
+  blockquote { border-left: 3px solid #c0392b; padding: 12px 20px; margin: 20px 0; background: #f0efec; border-radius: 0 6px 6px 0; font-style: italic; color: #444; font-size: 15px; }
+  .callout { background: #eafaf8; border: 1.5px solid #2ec4b6; border-radius: 8px; padding: 16px 20px; color: #1a7a72; font-size: 15px; margin: 24px 0; line-height: 1.65; }
+  .big-stat { font-size: 42px; font-weight: 700; color: #c0392b; line-height: 1.1; margin: 20px 0 6px; }
+  .big-stat-label { font-size: 16px; color: #555; margin-bottom: 20px; }
+  .label { font-size: 12px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #c0392b; margin: 20px 0 6px; }
+  .decision-table { width: 100%; border-collapse: collapse; margin: 24px 0; border: 1px solid #ddd; border-radius: 10px; overflow: hidden; }
+  .decision-table tr { border-bottom: 1px solid #ddd; }
+  .decision-table tr:last-child { border-bottom: none; }
+  .decision-table td { padding: 16px 20px; font-size: 15px; vertical-align: top; }
+  .decision-table td:first-child { font-size: 11px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: #999; background: #f0efec; width: 140px; border-right: 1px solid #ddd; }
+  .decision-table td:last-child { color: #222; line-height: 1.6; }
+  .decision-table .green { color: #1a7a72; font-weight: 700; font-size: 20px; }
+  @media (max-width: 600px) {
+    .page { padding: 60px 24px 80px; }
+    .doc-title { font-size: 36px; }
+    .compare-block { grid-template-columns: 1fr; }
+    #copy-btn { top: 16px; right: 16px; padding: 9px 14px; font-size: 12px; }
+    .decision-table td:first-child { width: 90px; }
+  }
+</style>
+</head>
+<body>
+
+<button id="copy-btn" onclick="copyText()">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+  Скопировать текст
+</button>
+<div class="copy-hint" id="copy-hint">Текст скопирован. Вставьте его в свой AI-чат.</div>
+
+<div class="page" id="doc-content">
+
+  <div class="doc-title">Человеческий Фактор</div>
+  <div class="doc-subtitle">Система спроектирована отлично. Один момент остался без внимания.<br>Этот документ — только об этом.</div>
+  <div class="doc-meta">
+    <span><strong>Дата:</strong> Март 2026</span>
+    <span><strong>Формат:</strong> Дополнение к KARI Factory</span>
+  </div>
+  <hr class="red-rule">
+
+  <div class="kicker">00 — Контекст</div>
+  <h1>KARI Factory — это серьёзно</h1>
+  <ul>
+    <li>Скорее всего первая компания в отрасли с автоматизацией такого уровня — от описания процесса до кода в продакшне</li>
+    <li>7 фаз, Claude AI, Docker, IT-контроль — технически всё выстроено правильно</li>
+    <li>Конкурентное преимущество, которое другие будут догонять годами</li>
+    <li>Этот документ — не критика. Это одно дополнение, которое текущий алгоритм пока не учитывает</li>
+  </ul>
+  <p>KARI Factory — эффективно спроектированная система. Конвейер из 7 фаз, контроль ИТ, интеграция с Claude AI и Docker-инфраструктура — это серьёзная работа. KARI — скорее всего первая компания в отрасли, которая внедряет автоматизацию такого уровня через весь бизнес целиком, от описания процесса сотрудником до работающего кода в продакшне. Это конкурентное преимущество, которое другие будут догонять годами.</p>
+  <hr class="rule">
+
+  <div class="kicker">01 — Два момента</div>
+  <h1>Два момента. Без защиты.</h1>
+  <p>Процесс KARI Factory проходит через 6 этапов: Опросник → AI-интервью → Код готов → IT ревью → Подтверждение → Продакшн. Два из них остаются без защиты:</p>
+  <div class="label">Шаг 1 — Опросник</div>
+  <p>Сотрудник описывает свои рабочие процессы боту через Telegram. Бот задаёт 16 вопросов — это уже попытка получить качественный ответ. Затем это повторяется еженедельно или раз в две недели, пока у системы не накопится достаточно информации для автоматизации.</p>
+  <p>Проблема: система считает количество сообщений, а не их качество. Сотрудник быстро понимает шаблон и начинает отвечать формально — процесс описан по образцу трёхмесячной давности, не по реальности сегодняшнего дня.</p>
+  <div class="label">Шаг 5 — Подтверждение</div>
+  <p>После того как AI написал код и IT-отдел его проверил, сотрудник получает результат в Telegram и нажимает «Одобрить». Если нажимает «Отклонить» — задача попадает в отдельную очередь. Отклонённые задачи — ценный материал для обучения системы.</p>
+  <p>Проблема: к этому моменту вся тяжёлая работа уже сделана машиной. Мозг человека автоматически воспринимает это как сигнал «уже проверено». Нет ни одного механизма, который помогал бы ему быть внимательным.</p>
+  <p>Оба момента связаны: качество входа определяет качество выхода.</p>
+  <hr class="rule">
+
+  <div class="kicker">02 — Пробел: Опросник</div>
+  <h1>16 сообщений. Не 16 ответов.</h1>
+  <ul>
+    <li>Порог в 16 сообщений — это уже попытка решить проблему поверхностных ответов. Но система считает шаги, а не смысл</li>
+    <li>Сотрудник даёт короткие ответы, описывает процесс по шаблону полугодовой давности, намеренно упрощает детали</li>
+    <li>Через несколько недель — сохраняет старые ответы и вставляет снова. Бот принимает. Система не умеет отличать живой ответ от шаблона</li>
+    <li>Проблема-невидимка: для системы всё выглядит правильно — пока автоматизация не начнёт работать не так, как ожидалось</li>
+  </ul>
+  <p>Когда бот задаёт одни и те же вопросы каждую неделю, сотрудник быстро находит способы сократить усилия. Не потому что ему всё равно — а потому что описание процесса для бота это дополнительная задача поверх основной работы.</p>
+  <p>Порог в 16 сообщений говорит о том, что проблема поверхностных ответов уже была замечена. Но количество сообщений — это не то же самое, что глубина ответов. В результате ИИ строит автоматизацию на основе устаревшего или неполного описания. Причину найти сложно: технически всё правильно.</p>
+  <hr class="rule">
+
+  <div class="kicker">03 — Пробел: Подтверждение</div>
+  <h1>Ещё одна точка риска</h1>
+  <ul>
+    <li>Шаг 5 — единственная точка, где система принимает данные без реальной проверки. Сотрудник подтверждает, не проверяя. Автоматизация получает зелёный свет</li>
+    <li>Kill Switch снимает ощущение ответственности: подсознательно — «ИТ всё равно откатит, никто не пострадает»</li>
+    <li>Кнопка «Одобрить» не даёт сотруднику ни одной причины остановиться и подумать</li>
+    <li>Логи и записи делают сотрудника осторожнее, но не внимательнее</li>
+  </ul>
+  <p>Когда машина уже всё посчитала и оформила, мозг автоматически воспринимает это как проверенное. Kill Switch — важная функция безопасности, но у неё есть обратная сторона: сотрудник подсознательно чувствует — если что-то пойдёт не так, система исправит. Это снимает ощущение личной ответственности.</p>
+  <p>Кнопка перестаёт ощущаться как важное решение — она ощущается как следующий шаг в очереди дел.</p>
+  <hr class="rule">
+
+  <div class="kicker">04 — Корень проблемы</div>
+  <h1>Пропущенное звено</h1>
+  <div class="compare-block">
+    <div class="compare-item">
+      <div class="compare-label">Сейчас</div>
+      <p>«Бот сделал работу. Мне нужно подтвердить.» → Человек — последняя формальность</p>
+    </div>
+    <div class="compare-item">
+      <div class="compare-label">Нужно</div>
+      <p>«Я — эксперт. Бот — мой инструмент.» → Человек — финальная инстанция</p>
+    </div>
+  </div>
+  <p>Сейчас роль сотрудника выглядит так: бот сделал работу, сотрудник должен подтвердить. Это превращает человека в последнее звено перед отправкой — и именно так он себя и ощущает.</p>
+  <p>Нужное состояние другое: сотрудник — это эксперт, который знает свою работу лучше любой системы. Бот — инструмент, который помогает ему оформить и проверить эти знания.</p>
+  <p>Путь кнута — логи, штрафы, контроль — делает сотрудника осторожнее, но не внимательнее. Задача — сделать так, чтобы сотрудник хотел быть точным.</p>
+  <hr class="rule">
+
+  <div class="kicker">05 — Предложение первое · Опросник</div>
+  <h1>Бот спрашивает, а не проверяет</h1>
+  <div class="compare-block">
+    <div class="compare-item">
+      <div class="compare-label">Сейчас</div>
+      <p>«Вот отчёт. Расхождений: 5. Одобрить или отклонить?»</p>
+    </div>
+    <div class="compare-item">
+      <div class="compare-label">Предложение</div>
+      <p>«В прошлый раз ты отметил 3% допуск — сегодня 7%. Это ожидаемо?»</p>
+    </div>
+  </div>
+  <ul>
+    <li>Бот обращается к экспертизе сотрудника, а не ждёт подтверждения</li>
+    <li>Сотрудник отвечает потому что к нему обратились — не потому что «надо нажать кнопку»</li>
+    <li>Система сверки уже имеет все данные — нужно только изменить формулировку запроса</li>
+  </ul>
+  <p>Вместо того чтобы показывать готовый отчёт и ждать одобрения, бот обращается к знаниям самого сотрудника. Разница в формулировке — небольшая. Разница в ощущении — принципиальная.</p>
+  <hr class="rule">
+
+  <div class="kicker">06 — Предложение второе · Подтверждение</div>
+  <h1>Личная печать</h1>
+  <p>Вместо безликой кнопки «Одобрить» — анимация красной печати с именем сотрудника: ОДОБРЕНО · ПЕТРОМ.</p>
+  <ul>
+    <li>Визуально — отсылка к советской бюрократии, знакомой каждому</li>
+    <li>«Я поставил свою печать» — не «я нажал кнопку». Личный авторитет, а не юридическая ответственность</li>
+    <li>Подпись вызывает тревогу («меня можно привлечь»). Печать — ощущение власти и компетентности</li>
+  </ul>
+  <p>Печать символизирует не юридическую ответственность, а личный авторитет. Разница между «я отвечаю за последствия» и «я принял решение, потому что я здесь компетентный человек».</p>
+  <hr class="rule">
+
+  <div class="kicker">06 — Предложение третье · Подтверждение</div>
+  <h1>Один неожиданный вопрос</h1>
+  <blockquote>«Какова итоговая сумма по артикулу 3847 в сегодняшнем инвойсе?»</blockquote>
+  <ul>
+    <li>Ответить наугад невозможно. Нужно открыть данные и посмотреть</li>
+    <li>Каждый раз разный вопрос — нельзя выучить и ответить на автопилоте</li>
+    <li>Один осознанный взгляд на данные — достаточно, чтобы заметить очевидное расхождение</li>
+    <li>Не экзамен и не ловушка — один конкретный вопрос, один конкретный ответ из отчёта</li>
+  </ul>
+  <p>Перед финальным одобрением система задаёт один вопрос — каждый раз разный, каждый раз неожиданный. Это единственный механизм, который физически требует одного осознанного взгляда на цифры. Один взгляд — достаточно, чтобы заметить очевидное расхождение.</p>
+  <hr class="rule">
+
+  <div class="kicker">06 — Предложение четвёртое · Подтверждение</div>
+  <h1>Система отвечает мемом</h1>
+  <p>Если сотрудник ответил верно или заметил реальное расхождение — система отвечает мемом. Не одним и тем же каждый раз, а случайным.</p>
+  <ul>
+    <li>Непредсказуемость — мозг не привыкает, ожидание не исчезает</li>
+    <li>Через повторение формирует привычку — не потому что заставили, а потому что стало интересно</li>
+    <li>Можно сделать коллекцию в стиле KARI — брендовые персонажи, сезонные темы, отсылки к жизни магазина</li>
+  </ul>
+  <p>Поймал ошибку в инвойсе — получил мем с кошкой и подписью «Глаз-алмаз» с логотипом KARI. Сотрудник никогда не знает, что появится следующим. Маленький момент в конце рабочего дня, который превращает «нажать кнопку» в «поймать ошибку». И незаметно формирует привычку смотреть на данные внимательно.</p>
+  <hr class="rule">
+
+  <div class="kicker">07 — Почему стандартные решения не работают</div>
+  <h1>Внешнее давление меняет маску, не поведение</h1>
+  <ul>
+    <li>Обучающее видео — посмотрит раз и забудет: между видео и кнопкой — часы усталости и десятки других задач</li>
+    <li>Логи и слежка — делают осторожнее, не внимательнее. Главная цель становится: не попасть в отчёт</li>
+    <li>Штрафы — убирают желание честно взаимодействовать: честность становится риском</li>
+    <li>Дайджест: сотрудник с 22 одобрениями «не глядя» и внимательный сотрудник — выглядят в статистике одинаково</li>
+  </ul>
+  <div class="callout">✅ Четыре предложения из этого документа — примерно 2–3 дня разработки поверх того, что уже построено. Архитектура не меняется. Фаза 6 нетронута.</div>
+  <p>Стандартные инструменты дают предсказуемый результат: сотрудник оптимизирует метрику, не результат. Решение должно работать иначе — изнутри, а не снаружи.</p>
+  <hr class="rule">
+
+  <div class="kicker">08 — Что будет, если ничего не менять</div>
+  <h1>Тихие ошибки. Невидимые.</h1>
+  <div class="big-stat">1 500</div>
+  <div class="big-stat-label">магазинов. В каждом — этот момент.</div>
+  <ul>
+    <li>Сотрудник в Новосибирске одобрит расхождение — потому что устал</li>
+    <li>Сотрудник в Краснодаре опишет процесс по шаблону трёхмесячной давности — потому что «так быстрее»</li>
+    <li>IT утвердит код — потому что код технически корректен. Никто не виноват. Но система работает не так</li>
+    <li>Четыре предложения встраиваются в тот же Telegram-бот. Фаза 6 нетронута. Добавляется одно: осознанность</li>
+  </ul>
+  <p>KARI Factory будет работать. Но постепенно в систему начнут проникать тихие ошибки. Чем больше таких автоматизаций запущено, тем сложнее найти, где именно что-то пошло не так. Система становится непрозрачной — не потому что она плохо спроектирована, а потому что человека внутри неё никто не проектировал.</p>
+  <p>Четыре предложения выше не меняют архитектуру. Они встраиваются в тот же Telegram-бот. Фаза 6 остаётся нетронутой. Добавляется только одно: человек, который нажимает кнопку, делает это осознанно.</p>
+  <hr class="rule">
+
+  <h1>Одно решение.</h1>
+  <table class="decision-table">
+    <tr><td>Проблема</td><td>Два шага без защиты.<br>Данные входят в систему непроверенными.</td></tr>
+    <tr><td>Риск</td><td>Автоматизация воспроизводит то, что получила.<br>Ошибка не видна — пока не накопилась.</td></tr>
+    <tr><td>Решение</td><td>4 изменения в Telegram-боте.<br>Архитектура не меняется. Фаза 6 не затронута.</td></tr>
+    <tr><td>Стоимость</td><td class="green">~2–3 дня разработки.</td></tr>
+    <tr><td>Результат</td><td>Система начинает работать полностью.</td></tr>
+  </table>
+  <hr class="red-rule">
+  <p style="text-align:center;color:#999;font-size:14px;font-style:italic;">Человеческий Фактор · Март 2026</p>
+
+</div>
+
+<script>
+function extractText() {
+  const content = document.getElementById('doc-content');
+  let text = '';
+  const walker = document.createTreeWalker(content, NodeFilter.SHOW_TEXT, null);
+  let node;
+  while (node = walker.nextNode()) {
+    const parent = node.parentElement;
+    const tag = parent.tagName.toLowerCase();
+    const t = node.textContent.trim();
+    if (!t) continue;
+    if (tag === 'li') text += '— ' + t + '\n';
+    else text += t + '\n';
+    if (['p','h1','li','blockquote','td'].includes(tag)) text += '\n';
+  }
+  return text.trim();
+}
+function showCopied() {
+  const hint = document.getElementById('copy-hint');
+  const btn = document.getElementById('copy-btn');
+  btn.classList.add('copied');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg> Скопировано';
+  hint.classList.add('visible');
+  setTimeout(() => {
+    btn.classList.remove('copied');
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Скопировать текст';
+    hint.classList.remove('visible');
+  }, 3000);
+}
+function copyText() {
+  const text = extractText();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(showCopied).catch(fallbackCopy);
+    return;
+  }
+  fallbackCopy();
+  function fallbackCopy() {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;font-size:16px;';
+    document.body.appendChild(ta);
+    ta.focus(); ta.select();
+    try { document.execCommand('copy'); showCopied(); } catch(e) {
+      const hint = document.getElementById('copy-hint');
+      hint.textContent = 'Выделите текст и скопируйте вручную';
+      hint.classList.add('visible');
+    }
+    document.body.removeChild(ta);
+  }
+}
+</script>
+</body>
+</html>
